@@ -10,10 +10,12 @@ import com.itheima.reggie.mapper.SetmealMapper;
 import com.itheima.reggie.service.SetmealDishService;
 import com.itheima.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,6 +46,27 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper,Setmeal> imple
         setmealDishService.saveBatch(setmealDishes);
     }
 
+    @Override
+    @Transactional
+    public void updateByIdWithDishes(SetmealDto setmealDto) {
+        this.updateById(setmealDto);
+
+        //关系表的更新操作需要先移除再新增
+        //套餐id
+        Long id = setmealDto.getId();
+        //移除
+        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SetmealDish::getSetmealId,id);
+        setmealDishService.remove(queryWrapper);
+        //新增
+        List<SetmealDish> setmealDishes = setmealDto.getSetmealDishes();
+        setmealDishes = setmealDishes.stream().map((item)->{
+            item.setSetmealId(id);
+            return item;
+        }).collect(Collectors.toList());
+        setmealDishService.saveBatch(setmealDishes);
+    }
+
     /**
      * 删除套餐
      * @param ids 套餐id
@@ -69,4 +92,40 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper,Setmeal> imple
         setmealDishService.remove(lambdaQueryWrapper);
         //再删除关系表
     }
+
+    @Override
+    @Transactional
+    public void updateStatusByIds(int status, Long[] ids) {
+        List<Setmeal> collect = Arrays.stream(ids).map((item) -> {
+            Setmeal setmeal = this.getById(item);
+            setmeal.setStatus(status);
+            return setmeal;
+        }).collect(Collectors.toList());
+
+        this.updateBatchById(collect);
+    }
+
+    /**
+     * 通过id查询套餐信息， 同时还要查询关联表setmeal_dish的菜品信息进行回显。
+     *
+     * @param id 待查询的id
+     */
+    @Override
+    @Transactional
+    public SetmealDto getByIdWithDish(Long id) {
+        // 根据id查询setmeal表中的基本信息
+        Setmeal setmeal = this.getById(id);
+        SetmealDto setmealDto = new SetmealDto();
+        // 对象拷贝。
+        BeanUtils.copyProperties(setmeal, setmealDto);
+        // 查询关联表setmeal_dish的菜品信息
+        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SetmealDish::getSetmealId, id);
+        List<SetmealDish> setmealDishList = setmealDishService.list(queryWrapper);
+        //设置套餐菜品属性
+        setmealDto.setSetmealDishes(setmealDishList);
+        return setmealDto;
+    }
+
+
 }

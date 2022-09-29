@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +26,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper,Dish> implements Dis
 
     /**
      * 新增菜品，同时保存对应的口味数据
+     *
      * @param dishDto c
      */
     @Override
@@ -51,8 +51,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper,Dish> implements Dis
 
     }
 
-    /** 
-     *
+    /**
      * @param id id
      * @return 菜品信息
      */
@@ -62,11 +61,11 @@ public class DishServiceImpl extends ServiceImpl<DishMapper,Dish> implements Dis
         Dish dish = this.getById(id);
 
         DishDto dishDto = new DishDto();
-        BeanUtils.copyProperties(dish,dishDto);
+        BeanUtils.copyProperties(dish, dishDto);
 
         //查询当前菜品对应的口味信息，从dish_flavor表查询
         LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(DishFlavor::getDishId,dish.getId());
+        queryWrapper.eq(DishFlavor::getDishId, dish.getId());
         List<DishFlavor> flavors = dishFlavorService.list(queryWrapper);
         dishDto.setFlavors(flavors);
 
@@ -80,7 +79,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper,Dish> implements Dis
         this.updateById(dishDto);
         //清理当前口味信息————dish_flavor deleter
         LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper();
-        queryWrapper.eq(DishFlavor::getDishId,dishDto.getId());
+        queryWrapper.eq(DishFlavor::getDishId, dishDto.getId());
         dishFlavorService.remove(queryWrapper);
         //更新口味表dish_flavor install
         List<DishFlavor> flavors = dishDto.getFlavors();
@@ -92,4 +91,5 @@ public class DishServiceImpl extends ServiceImpl<DishMapper,Dish> implements Dis
 
         dishFlavorService.saveBatch(flavors);
     }
+
 }

@@ -23,4 +23,5 @@ public interface DishService extends IService<Dish> {
      * @param dishDto 信息表
      */
     public void updateWithFlavor(DishDto dishDto);
+
 }
