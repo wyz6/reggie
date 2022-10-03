@@ -16,6 +16,11 @@ spring:
     username: 2011038216@qq.com
     default-encoding: UTF-8
     host: smtp.qq.com
+  # redis
+  redis:
+    host: 192.168.116.129
+    port: 6379
+    database: 0
 
 mybatis-plus:
   configuration:
