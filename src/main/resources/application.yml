@@ -21,6 +21,10 @@ spring:
     host: 192.168.116.129
     port: 6379
     database: 0
+  # cache缓存有效期
+  cache:
+    redis:
+      time-to-live: 1800000
 
 mybatis-plus:
   configuration:
